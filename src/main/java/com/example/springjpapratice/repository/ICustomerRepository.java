@@ -1,15 +1,12 @@
 package com.example.springjpapratice.repository;
 
 import com.example.springjpapratice.entity.Customer;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
-import java.awt.print.Pageable;
-
 @Repository
-public interface ICustomerRepository extends JpaRepository<Customer, Long> {
-  Page<Customer> findAll(Pageable pageable);
-
+public interface ICustomerRepository
+    extends JpaRepository<Customer, Long>, PagingAndSortingRepository<Customer, Long> {
   boolean existsById(Long id);
 }

@@ -9,6 +9,7 @@ import com.example.springjpapratice.service.ICustomerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -20,28 +21,29 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(rollbackOn = {Exception.class, DuplicateDataException.class, NotFoundException.class})
+@Transactional(
+    rollbackOn = {Exception.class, DuplicateDataException.class, NotFoundException.class})
+@PropertySource("classpath:messages_en.properties")
 public class CustomerServiceImpl implements ICustomerService {
-    private final ICustomerRepository customerRepository;
-    private final ModelMapper modelMapper = new ModelMapper();
+  private final ICustomerRepository customerRepository;
+  private final ModelMapper modelMapper = new ModelMapper();
 
-    @Override
-    public Page<CustomerDTO> getAllCustomer(Integer pageNumber, Integer pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Customer> customerPage = customerRepository.findAll(pageable);
-        List<CustomerDTO> customerRespons = customerPage
-                .stream()
-                .map(customer -> modelMapper.map(customer, CustomerDTO.class))
-                .collect(Collectors.toList());
-        return new PageImpl<>(customerRespons, pageable, customerPage.getTotalElements());
+  @Override
+  public Page<CustomerDTO> getAllCustomer(Integer pageNumber, Integer pageSize) {
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+    Page<Customer> customerPage = customerRepository.findAll(pageable);
+    List<CustomerDTO> customerResponse =
+        customerPage.stream()
+            .map(customer -> modelMapper.map(customer, CustomerDTO.class))
+            .collect(Collectors.toList());
+    return new PageImpl<>(customerResponse, pageable, customerPage.getTotalElements());
+  }
+
+  @Override
+  public void createCustomer(CustomerDTO customerDTO) throws DuplicateDataException {
+    if (customerRepository.existsById(customerDTO.getId())) {
+      throw new DuplicateDataException("customer.exist");
     }
-
-    @Override
-    public void createCustomer(CustomerDTO customerDTO) throws DuplicateDataException {
-        if (customerRepository.existsById(customerDTO.getId())) {
-            throw new DuplicateDataException("customer.exist");
-        }
-        customerRepository.save(modelMapper.map(customerDTO, Customer.class));
-    }
-
+    customerRepository.save(modelMapper.map(customerDTO, Customer.class));
+  }
 }
